@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>espero te guste :D</title>
+    <title>ESPERO TE GUSTE :D</title>
     <style>
         body {
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background-color: #f8d7da;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
             margin: 0;
             font-family: 'Arial', sans-serif;
         }
@@ -23,6 +23,7 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            transition: background-color 0.5s ease-in-out;
         }
 
         #message {
@@ -48,6 +49,28 @@
             transition: transform 0.5s ease-in-out;
         }
 
+        #likeCount {
+            position: absolute;
+            top: 82%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        #likedIcon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5em;
+            color: #e44d26;
+            cursor: pointer;
+        }
+
+        #likedIcon:hover {
+            color: #ff7e5f;
+        }
+
         #shareBtn {
             position: absolute;
             bottom: 20px;
@@ -60,6 +83,101 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 1em;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        #shareBtn:hover {
+            background-color: #0056b3;
+        }
+
+        #responseForm {
+            display: none;
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #responseForm textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+        }
+
+        #responseBtn {
+            width: 100%;
+            padding: 8px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        #responseBtn:hover {
+            background-color: #0056b3;
+        }
+
+        #likedIcon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5em;
+            color: #e44d26;
+            cursor: pointer;
+        }
+
+        #likedIcon:hover {
+            color: #ff7e5f;
+        }
+
+        #showResponsesBtn {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        #showResponsesBtn:hover {
+            background-color: #0056b3;
+        }
+
+        #responsesContainer {
+            display: none;
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            max-height: 100px;
+        }
+
+        #responsesContainer p {
+            margin: 5px 0;
+            font-size: 0.8em;
+            color: #555;
         }
 
         @keyframes blink {
@@ -75,14 +193,25 @@
 <body>
     <div id="card">
         <div id="message" onclick="changeMessage()">
-            <p id="customMessage">AQUI INGRESAS LA MITAD</p>
+            <p id="customMessage">¡puedes agregar un mensaje :D!</p>
             
         </div>
         <div id="heart" onclick="animateHeart()">❤️</div>
+        <div id="likeCount">0</div>
+        <div id="likedIcon" onclick="toggleLike()">&#10084;</div>
         <button id="shareBtn" onclick="shareCard()">Compartir Tarjeta</button>
+        <button id="showResponsesBtn" onclick="toggleResponses()">Ver Respuestas</button>
+        <div id="responseForm">
+            <textarea id="responseText" placeholder="Tu mensaje de respuesta..."></textarea>
+            <button id="responseBtn" onclick="saveResponse()">Guardar Respuesta</button>
+        </div>
+        <div id="responsesContainer"></div>
     </div>
 
     <script>
+        var isLiked = false;
+        var likeCount = 0;
+
         function animateHeart() {
             var heart = document.getElementById('heart');
             heart.style.transform = 'scale(1.5)';
@@ -100,6 +229,63 @@
                 customMessage.innerHTML = "<p>" + newMessage + "</p>";
                 setCookie("customMessage", newMessage, 365);
             }
+        }
+
+        function toggleResponses() {
+            var responsesContainer = document.getElementById('responsesContainer');
+            var responseForm = document.getElementById('responseForm');
+            
+            if (responsesContainer.style.display === 'none') {
+                responsesContainer.style.display = 'block';
+                responseForm.style.display = 'none';
+                loadResponses();
+            } else {
+                responsesContainer.style.display = 'none';
+            }
+        }
+
+        function loadResponses() {
+            var responsesContainer = document.getElementById('responsesContainer');
+            var storedResponses = getCookie("storedResponses");
+
+            if (storedResponses) {
+                var responses = storedResponses.split("|");
+                responsesContainer.innerHTML = "";
+
+                for (var i = 0; i < responses.length; i++) {
+                    var responseParagraph = document.createElement('p');
+                    responseParagraph.textContent = responses[i];
+                    responsesContainer.appendChild(responseParagraph);
+                }
+            }
+        }
+
+        function saveResponse() {
+            var responseText = document.getElementById('responseText').value;
+            
+            if (responseText.trim() !== "") {
+                alert("¡Respuesta guardada con éxito! 😊");
+                setCookie("responseMessage", responseText, 365);
+
+                var storedResponses = getCookie("storedResponses") || "";
+                storedResponses += responseText + "|";
+                setCookie("storedResponses", storedResponses, 365);
+            } else {
+                alert("Por favor, escribe tu respuesta antes de guardar.");
+            }
+        }
+
+        function toggleLike() {
+            if (!isLiked) {
+                likeCount++;
+                document.getElementById('likeCount').innerText = likeCount;
+                document.getElementById('likedIcon').style.color = '#e44d26';
+            } else {
+                likeCount--;
+                document.getElementById('likeCount').innerText = likeCount;
+                document.getElementById('likedIcon').style.color = '#888';
+            }
+            isLiked = !isLiked;
         }
 
         function setCookie(name, value, days) {
@@ -123,12 +309,6 @@
             return null;
         }
 
-        function shareCard() {
-            var message = encodeURIComponent(document.getElementById('customMessage').innerHTML);
-            var url = window.location.href.split('?')[0] + "?message=" + message;
-            window.prompt("Copia este enlace y compártelo con tu pareja:", url);
-        }
-
         // Recuperar mensaje personalizado desde el parámetro de la URL
         function getMessageFromURL() {
             var urlParams = new URLSearchParams(window.location.search);
@@ -138,7 +318,16 @@
             }
         }
 
+        // Cargar respuesta almacenada en cookies, si existe
+        function loadResponse() {
+            var storedResponse = getCookie("responseMessage");
+            if (storedResponse) {
+                document.getElementById('responseText').value = storedResponse;
+            }
+        }
+
         getMessageFromURL();
+        loadResponse();
     </script>
 </body>
 </html>
